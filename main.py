@@ -1,31 +1,60 @@
-import os, time
+import os
 
 class Hashtable:
-    def __init__(self, size=10): #tamaño 10 porque para armar el hash lo voy a hacer con modulo 10, por lo que solo pueden dar 10 valores max
+    def __init__(self, size=10):
         self.size = size
-        self.buckets = [[] for _ in range(size)]  #dentro de cada valor se necesitan listas por si hay dos comics con mismo hash
+        self.buckets = [[] for _ in range(size)]
 
     def funcion_hash(self, codigo):
         suma_ascii = sum(int(char) for char in codigo if char.isdigit())
         return suma_ascii % 10
 
-    def agregar_y_editar(self, codigo, value):
+    def agregar(self, codigo, value):
+        index = self.funcion_hash(codigo)
+        self.buckets[index].append((codigo, value))
+
+    def editar(self, codigo):
+        os.system('cls')
         index = self.funcion_hash(codigo)
         bucket = self.buckets[index]
-        for valor, valor_hash in enumerate(bucket):
+        for valor, (valor_hash, nombre) in enumerate(bucket):
             if valor_hash == codigo:
-                bucket[valor] = (codigo, value)  
+                print(f"\nProducto: {nombre['titulo']}")
+                print("Campos disponibles para editar:")
+                for key in nombre.keys():
+                    if key != "codigo":
+                        print(f"- {key}")
+                campo = input("\nIngrese el nombre del campo que desea modificar: ").strip().lower()
+                if campo in nombre:
+                    if campo in ["stock", "precio"]:
+                        while True:
+                            nuevo_valor = input(f"Ingrese el nuevo valor para '{campo}': ").strip()
+
+                            if nuevo_valor.isdigit():
+                                if campo == "stock":
+                                    nombre[campo] = int(nuevo_valor)
+                                    
+                                else:
+                                    nombre[campo] = f"${nuevo_valor}"
+                                
+                                break
+                            else:
+                                print("El stock debe ser un número entero.")
+                          
+                              
+                                    
+                               
+                    else:
+                        nuevo_valor = input(f"Ingrese el nuevo valor para '{campo}': ")
+                        nombre[campo] = nuevo_valor
+                    bucket[valor] = (codigo, nombre)
+                    print("\nProducto actualizado correctamente.")
+                else:
+                    print("\nCampo no válido.")
                 return
-        bucket.append((codigo, value)) 
+        print("\nEl código ingresado no existe.")
 
-    def obtener_valor(self, codigo):   
-        index = self.funcion_hash(codigo)
-        bucket = self.buckets[index]
-        for valor_hash, nombre in bucket:
-            if valor_hash == codigo:
-                return nombre
-        return None  
-
+    
     def eliminar(self, codigo):
         index = self.funcion_hash(codigo)
         bucket = self.buckets[index]
@@ -35,16 +64,22 @@ class Hashtable:
                 return nombre
 
     def mostrar_productos(self):
+        productos_mostrados = False
         for bucket in self.buckets:
             for codigo, datos in bucket:
-                print(f"Codigo: {codigo}")
                 print(f"Título: {datos['titulo']}")
+                print(f"Codigo: {codigo}")
                 print(f"Género: {datos['genero']}")
                 print(f"Tipo: {datos['tipo']}")
                 print(f"Editorial: {datos['editorial']}")
                 print(f"Alineación: {datos['alineacion']}")
                 print(f"Personaje/Equipo: {datos['personaje_equipo']}")
-                print("-----------------------------")
+                print(f"Stock: {datos['stock']}")
+                print(f"Precio: {datos['precio']}")
+                print("-----------------------------\n")
+                productos_mostrados = True
+        if not productos_mostrados:
+            print("No hay productos cargados.")
 
 catalogo_productos = [
     {
@@ -54,7 +89,9 @@ catalogo_productos = [
         "genero": "Acción",
         "alineacion": "Héroe",
         "personaje_equipo": "Batman",
-        "titulo": "Batman: Año Uno"
+        "titulo": "Batman: Año Uno",
+        "stock": 10,
+        "precio": "$1500"
     },
     {
         "codigo": "C002",
@@ -63,25 +100,9 @@ catalogo_productos = [
         "genero": "Aventura",
         "alineacion": "Héroe",
         "personaje_equipo": "Spider-Man",
-        "titulo": "The Amazing Spider-Man #1"
-    },
-    {
-        "codigo": "C003",
-        "tipo": "cómic",
-        "editorial": "DC Comics",
-        "genero": "Fantasía",
-        "alineacion": "Héroe",
-        "personaje_equipo": "Wonder Woman",
-        "titulo": "Wonder Woman: Renacimiento"
-    },
-    {
-        "codigo": "C004",
-        "tipo": "cómic",
-        "editorial": "Marvel Comics",
-        "genero": "Ciencia Ficción",
-        "alineacion": "Héroes",
-        "personaje_equipo": "Los Vengadores",
-        "titulo": "Avengers: La Era de Ultrón"
+        "titulo": "The Amazing Spider-Man #1",
+        "stock": 7,
+        "precio": "$1800"
     },
     {
         "codigo": "M001",
@@ -90,7 +111,9 @@ catalogo_productos = [
         "genero": "Acción",
         "alineacion": "Héroe",
         "personaje_equipo": "Goku",
-        "titulo": "Dragon Ball Vol. 1"
+        "titulo": "Dragon Ball Vol. 1",
+        "stock": 15,
+        "precio": "$2200"
     },
     {
         "codigo": "M002",
@@ -99,59 +122,24 @@ catalogo_productos = [
         "genero": "Aventura",
         "alineacion": "Héroes",
         "personaje_equipo": "Luffy y Sombrero de Paja",
-        "titulo": "One Piece Vol. 1"
-    },
-    {
-        "codigo": "M003",
-        "tipo": "manga",
-        "editorial": "Kodansha",
-        "genero": "Acción",
-        "alineacion": "Neutral",
-        "personaje_equipo": "Eren Yeager",
-        "titulo": "Attack on Titan Vol. 1"
-    },
-    {
-        "codigo": "M004",
-        "tipo": "manga",
-        "editorial": "Shueisha",
-        "genero": "Aventura",
-        "alineacion": "Héroe",
-        "personaje_equipo": "Naruto Uzumaki",
-        "titulo": "Naruto Vol. 1"
-    },
-    {
-        "codigo": "C005",
-        "tipo": "cómic",
-        "editorial": "Image Comics",
-        "genero": "Acción / Fantasía",
-        "alineacion": "Anti-héroe",
-        "personaje_equipo": "Spawn",
-        "titulo": "Spawn #1"
-    },
-    {
-        "codigo": "M005",
-        "tipo": "manga",
-        "editorial": "VIZ Media",
-        "genero": "Acción / Misterio",
-        "alineacion": "Neutral",
-        "personaje_equipo": "Light Yagami",
-        "titulo": "Death Note Vol. 1"
+        "titulo": "One Piece Vol. 1",
+        "stock": 12,
+        "precio": "$2100"
     }
-
 ]
 
 def menu():
-    os.system ("cls")
+    os.system('cls')
     while True:
         opciones = {
-        "1": mostrar_catalogo,
-        "2": eliminar_producto,
-        "3": actualizar_info,
-        "4": realizar_pedido
+            "1": mostrar_catalogo,
+            "2": eliminar_producto,
+            "3": actualizar_info,
+            "4": realizar_pedido
         }
 
         print("=== Catálogo de Cómics y Manga ===")
-        print("1. Ver el catalogo de productos")
+        print("1. Ver el catálogo de productos")
         print("2. Buscar por código y eliminar producto")
         print("3. Actualizar información de un producto")
         print("4. Realizar un pedido")
@@ -168,38 +156,42 @@ def menu():
             print("\nOpción inválida. Intente de nuevo.")
             input("Presione Enter para continuar...")
 
-    
 
 def mostrar_catalogo():
-    os.system ("cls")
+    os.system("cls")
     print("\n--- Catálogo de Productos ---")
     tabla.mostrar_productos()
-    input("Presione Enter para continuar...") 
+
+    input("Presione Enter para continuar...")
+
 
 def eliminar_producto():
-    os.system ("cls")
+    os.system("cls")
     codigo = input("Escriba el código del producto: ")
     nombre = tabla.eliminar(codigo)
-
-    if nombre: #si encuentra el producto
+    if nombre:
         print(f"\nSe ha eliminado {nombre['titulo']} correctamente.")
-
     else:
-    
         print("\nEl código no existe o es incorrecto.")
 
     print("-----------------------------\n")
-    input("Presione Enter para continuar...") 
+    input("Presione Enter para continuar...")
+
 
 def actualizar_info():
-    pass
+    os.system("cls")
+    codigo = input("Ingrese el código del producto a editar: ")
+    tabla.editar(codigo)
+    
+    print("-----------------------------\n")
+    input("Presione Enter para continuar...")
+
 
 def realizar_pedido():
     pass
 
 tabla = Hashtable()
-
 for producto in catalogo_productos:
-   tabla.agregar_y_editar(producto["codigo"], producto)
+    tabla.agregar(producto["codigo"], producto)
 
 menu()
