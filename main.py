@@ -1,5 +1,50 @@
 import os, time
-os.system ("cls")
+
+class Hashtable:
+    def __init__(self, size=10): #tamaño 10 porque para armar el hash lo voy a hacer con modulo 10, por lo que solo pueden dar 10 valores max
+        self.size = size
+        self.buckets = [[] for _ in range(size)]  #dentro de cada valor se necesitan listas por si hay dos comics con mismo hash
+
+    def funcion_hash(self, codigo):
+        suma_ascii = sum(int(char) for char in codigo if char.isdigit())
+        return suma_ascii % 10
+
+    def agregar_y_editar(self, codigo, value):
+        index = self.funcion_hash(codigo)
+        bucket = self.buckets[index]
+        for valor, valor_hash in enumerate(bucket):
+            if valor_hash == codigo:
+                bucket[valor] = (codigo, value)  
+                return
+        bucket.append((codigo, value)) 
+
+    def obtener_valor(self, codigo):   
+        index = self.funcion_hash(codigo)
+        bucket = self.buckets[index]
+        for valor_hash, nombre in bucket:
+            if valor_hash == codigo:
+                return nombre
+        return None  
+
+    def eliminar(self, codigo):
+        index = self.funcion_hash(codigo)
+        bucket = self.buckets[index]
+        for valor, (valor_hash, nombre) in enumerate(bucket):
+            if valor_hash == codigo:
+                del bucket[valor]
+                return nombre
+
+    def mostrar_productos(self):
+        for bucket in self.buckets:
+            for codigo, datos in bucket:
+                print(f"Codigo: {codigo}")
+                print(f"Título: {datos['titulo']}")
+                print(f"Género: {datos['genero']}")
+                print(f"Tipo: {datos['tipo']}")
+                print(f"Editorial: {datos['editorial']}")
+                print(f"Alineación: {datos['alineacion']}")
+                print(f"Personaje/Equipo: {datos['personaje_equipo']}")
+                print("-----------------------------")
 
 catalogo_productos = [
     {
@@ -96,23 +141,65 @@ catalogo_productos = [
 ]
 
 def menu():
-    print("=== Catálogo de Cómics y Manga ===")
-    print("1. Ver el catalogo de productos")
-    print("2. Buscar por código y eliminar producto")
-    print("3. Actualizar información de un producto")
-    print("4. Salir")
-    opcion = input("Seleccione una opción (1-4): ")
-    return opcion
+    os.system ("cls")
+    while True:
+        opciones = {
+        "1": mostrar_catalogo,
+        "2": eliminar_producto,
+        "3": actualizar_info,
+        "4": realizar_pedido
+        }
 
-def mostrar_catalogo():
-    print("\n--- Catálogo de Productos ---")
-    for producto in catalogo_productos:
-        print(f"Código: {producto['codigo']}, Título: {producto['titulo']}, Tipo: {producto['tipo']}, Editorial: {producto['editorial']}, Género: {producto['genero']}, Alineación: {producto['alineacion']}, Personaje/Equipo: {producto['personaje_equipo']}")
-    print("-----------------------------\n")
-    input("Presione Enter para continuar...")  
+        print("=== Catálogo de Cómics y Manga ===")
+        print("1. Ver el catalogo de productos")
+        print("2. Buscar por código y eliminar producto")
+        print("3. Actualizar información de un producto")
+        print("4. Realizar un pedido")
+        print("5. Salir")
 
+        opcion = input("Seleccione una opción (1-4): ")
 
-
-
+        if opcion == str(len(opciones) + 1):
+            print("Saliendo del programa...")
+            break
+        elif opcion in opciones:
+            opciones[opcion]()
+        else:
+            print("\nOpción inválida. Intente de nuevo.")
+            input("Presione Enter para continuar...")
 
     
+
+def mostrar_catalogo():
+    os.system ("cls")
+    print("\n--- Catálogo de Productos ---")
+    tabla.mostrar_productos()
+    input("Presione Enter para continuar...") 
+
+def eliminar_producto():
+    os.system ("cls")
+    codigo = input("Escriba el código del producto: ")
+    nombre = tabla.eliminar(codigo)
+
+    if nombre: #si encuentra el producto
+        print(f"\nSe ha eliminado {nombre['titulo']} correctamente.")
+
+    else:
+    
+        print("\nEl código no existe o es incorrecto.")
+
+    print("-----------------------------\n")
+    input("Presione Enter para continuar...") 
+
+def actualizar_info():
+    pass
+
+def realizar_pedido():
+    pass
+
+tabla = Hashtable()
+
+for producto in catalogo_productos:
+   tabla.agregar_y_editar(producto["codigo"], producto)
+
+menu()
